@@ -109,7 +109,6 @@
     .btn-primary   { background: #1e88e5; color: #fff; }
     .btn-danger    { background: #e53935; color: #fff; }
     .btn-secondary { background: #616161; color: #fff; }
-    .btn-warning   { background: #fb8c00; color: #fff; }
     button:active  { transform: translateY(1px); opacity: 0.95; }
 
     /* 大顆複製按鈕 */
@@ -179,9 +178,10 @@
       resize: vertical;
       box-sizing: border-box;
       font-size: 16px;
-      line-height: 1.5;
+      line-height: 1.6;
       color: #222;
       font-weight: 500;
+      white-space: pre-wrap;
     }
     .message {
       font-size: 13px;
@@ -248,16 +248,13 @@
           <option value="ES爆量車2"></option>
         </datalist>
 
-        <!-- 常用車種快速選擇 -->
+        <!-- 常用車種快速選擇（縮減版） -->
         <div class="quick-types">
           <span style="font-size:12px;color:#555;margin-right:4px;">快速選擇：</span>
           <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL幹線車(南車)')">3PL幹線車(南車)</button>
           <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL爆量車1')">3PL爆量車1</button>
           <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL爆量車2')">3PL爆量車2</button>
-          <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL爆量車3')">3PL爆量車3</button>
           <button type="button" class="quick-type-btn" onclick="setVehicleType('ES幹線車')">ES幹線車</button>
-          <button type="button" class="quick-type-btn" onclick="setVehicleType('ES爆量車1')">ES爆量車1</button>
-          <button type="button" class="quick-type-btn" onclick="setVehicleType('ES爆量車2')">ES爆量車2</button>
         </div>
       </div>
 
@@ -277,7 +274,7 @@
     </div>
 
     <div class="hint">
-      ※ 時間可輸入 <b>純數字</b> 或 HH:MM，例如：0500 → 05:00，930 → 09:30。
+      ※ 時間可輸入 <b>純數字</b> 或 HH:MM，例如：0500 → 05:00，930 → 09:30。（資料會自動儲存）
     </div>
 
     <!-- 表格 -->
@@ -300,11 +297,10 @@
     <h3>整理內容（可複製貼到通訊軟體）</h3>
     <textarea id="outputText" readonly>尚無紀錄</textarea>
 
-    <!-- 按鈕列：左側三顆，右側一大顆複製 -->
+    <!-- 按鈕列：左側兩顆，右側一大顆複製 -->
     <div class="actions-row">
       <div class="actions-left">
         <button class="btn-secondary" id="generateTextBtn">重新整理</button>
-        <button class="btn-warning" id="saveBtn">一鍵儲存</button>
         <button class="btn-danger" id="clearBtn">一鍵清除</button>
       </div>
       <div class="actions-right">
@@ -317,6 +313,7 @@
 
 <script>
   const records = [];
+  const STORAGE_KEY = "vehicle_records_v1";
 
   const dateInput        = document.getElementById("dateInput");
   const vehicleTypeInput = document.getElementById("vehicleTypeInput");
@@ -335,7 +332,31 @@
     vehicleTypeInput.value = type;
     vehicleTypeInput.focus();
   }
-  window.setVehicleType = setVehicleType; // 讓 HTML onclick 找得到
+  window.setVehicleType = setVehicleType;
+
+  // 自動儲存到 localStorage
+  function saveToStorage() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    } catch (e) {
+      console.warn("無法儲存到瀏覽器：", e);
+    }
+  }
+
+  function loadFromStorage() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      if (!data) return;
+      const parsed = JSON.parse(data);
+      if (!Array.isArray(parsed)) return;
+      records.push(...parsed);
+      sortRecords();
+      renderTable();
+      generateText();
+    } catch (e) {
+      console.warn("讀取儲存紀錄失敗：", e);
+    }
+  }
 
   // 文字時間 → 正規 24 小時 HH:MM，支援 0830 / 930 / 8:30 / 08:30
   function normalizeTime(str, label) {
@@ -406,14 +427,24 @@
     });
   }
 
+  // 多行排版的輸出文字
   function generateText() {
     if (records.length === 0) {
       outputText.value = "尚無紀錄";
       return;
     }
-    outputText.value = records.map(r =>
-      `${r.date.replace(/-/g,"/")}  ${r.type} 到廠：${r.arrive || "-"} 離廠：${r.leave || "-"}`
-    ).join("\n");
+    const lines = records.map(r => {
+      const dateStr = r.date.replace(/-/g, "/");
+      const arrive  = r.arrive || "-";
+      const leave   = r.leave  || "-";
+      return (
+        `${dateStr}  ${r.type}\n` +
+        `    到廠 ${arrive}\n` +
+        `    離廠 ${leave}`
+      );
+    });
+    // 每筆之間空一行
+    outputText.value = lines.join("\n\n");
   }
 
   document.getElementById("addRecordBtn").onclick = () => {
@@ -440,7 +471,6 @@
     const leave  = normalizeTime(leaveRaw, "離廠時間");
     if (leave === null) return;
 
-    // 把格式化後的時間寫回輸入框（如果有填）
     if (arrive) arriveTimeEl.value = arrive;
     if (leave)  leaveTimeEl.value  = leave;
 
@@ -448,6 +478,7 @@
     sortRecords();
     renderTable();
     generateText();
+    saveToStorage();  // 自動存檔
 
     // 成功後保留日期，清空車種與時間
     vehicleTypeInput.value = "";
@@ -460,6 +491,7 @@
     sortRecords();
     renderTable();
     generateText();
+    saveToStorage();
   };
 
   document.getElementById("copyBtn").onclick = async () => {
@@ -475,34 +507,29 @@
 
   document.getElementById("generateTextBtn").onclick = () => {
     sortRecords();
+    renderTable();
     generateText();
     messageEl.textContent = "已重新整理";
     setTimeout(() => (messageEl.textContent = ""), 2000);
   };
 
   document.getElementById("clearBtn").onclick = () => {
-    if (confirm("確定要清除全部紀錄嗎？")) {
+    if (confirm("確定要清除全部紀錄嗎？（會一併清除自動儲存）")) {
       records.length = 0;
       renderTable();
       generateText();
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (e) {}
     }
   };
 
-  document.getElementById("saveBtn").onclick = () => {
-    const blob = new Blob([JSON.stringify(records, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "vehicle_records.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // 初始畫面
-  renderTable();
-  generateText();
+  // 初始載入自動存檔資料
+  loadFromStorage();
+  if (records.length === 0) {
+    renderTable();
+    generateText();
+  }
 </script>
 
 </body>
