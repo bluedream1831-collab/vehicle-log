@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>車輛到離廠紀錄（24小時制文字輸入）</title>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 16px;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    h1 {
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .form-group {
+      flex: 1;
+      min-width: 120px;
+      display: flex;
+      flex-direction: column;
+    }
+    label { font-size: 13px; margin-bottom: 4px; }
+    input[type="text"],
+    input[type="date"] {
+      padding: 6px 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn-primary { background: #007bff; color: #fff; }
+    .btn-danger { background: #dc3545; color: #fff; }
+    .btn-copy { background: #28a745; color: #fff; }
+    .btn-secondary { background: #6c757d; color: #fff; }
+    .btn-warning { background: #ff9800; color: #fff; }
+    .flex-end { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 12px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    th { background: #f0f0f0; }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+      margin-top: 8px;
+      box-sizing: border-box;
+    }
+    .message { font-size: 13px; color: #28a745; margin-top: 5px; height: 18px; }
+    .hint { font-size: 12px; color: #666; margin-top: 4px; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>車輛到廠／離廠紀錄</h1>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>日期</label>
+        <input type="date" id="dateInput" />
+      </div>
+
+      <div class="form-group">
+        <label>車種（可輸入或選擇）</label>
+        <input list="vehiclePresets" id="vehicleTypeInput" placeholder="3PL幹線車(南車) / 爆量車1 / ES車 / 自訂" />
+        <datalist id="vehiclePresets">
+          <option value="3PL幹線車(南車)"></option>
+          <option value="爆量車1"></option>
+          <option value="爆量車2"></option>
+          <option value="爆量車3"></option>
+          <option value="ES車"></option>
+        </datalist>
+      </div>
+
+      <div class="form-group">
+        <label>到廠時間（24小時制，格式 HH:MM）</label>
+        <input type="text" id="arriveTime" placeholder="例如：08:30 或 14:05" />
+      </div>
+
+      <div class="form-group">
+        <label>離廠時間（24小時制，格式 HH:MM）</label>
+        <input type="text" id="leaveTime" placeholder="例如：09:10 或 16:45" />
+      </div>
+
+      <div class="form-group" style="align-self:flex-end; min-width:120px;">
+        <button class="btn-primary" id="addRecordBtn">新增紀錄</button>
+      </div>
+    </div>
+
+    <div class="hint">
+      ※ 時間請使用 24 小時制，例如：08:05、14:30（不會有上午／下午）。
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>序號</th>
+          <th>日期</th>
+          <th>車種</th>
+          <th>到廠</th>
+          <th>離廠</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="recordTbody"></tbody>
+    </table>
+    <div id="noDataText" style="text-align:center; color:#777; margin-top:8px;">尚無紀錄</div>
+
+    <h3 style="margin-top:20px;">整理內容（可複製貼到通訊軟體）</h3>
+    <textarea id="outputText" readonly>尚無紀錄</textarea>
+
+    <div class="flex-end">
+      <button class="btn-secondary" id="generateTextBtn">重新整理</button>
+      <button class="btn-copy" id="copyBtn">一鍵複製</button>
+      <button class="btn-warning" id="saveBtn">一鍵儲存</button>
+      <button class="btn-danger" id="clearBtn">一鍵清除</button>
+    </div>
+
+    <div id="message" class="message"></div>
+  </div>
+
+<script>
+  const records = [];
+
+  const dateInput = document.getElementById("dateInput");
+  const vehicleTypeInput = document.getElementById("vehicleTypeInput");
+  const arriveTimeEl = document.getElementById("arriveTime");
+  const leaveTimeEl = document.getElementById("leaveTime");
+  const recordTbody = document.getElementById("recordTbody");
+  const outputText = document.getElementById("outputText");
+  const messageEl = document.getElementById("message");
+  const noDataText = document.getElementById("noDataText");
+
+  // 預設日期為今天
+  dateInput.valueAsDate = new Date();
+
+  // 文字時間轉成 24 小時 HH:MM，並檢查是否有效
+  function normalizeTime(str, label) {
+    str = (str || "").trim();
+    if (!str) return ""; // 允許空白（只填到廠或只填離廠）
+
+    const m = str.match(/^(\d{1,2}):(\d{1,2})$/);
+    if (!m) {
+      alert(label + " 請輸入 24 小時制時間，格式為 HH:MM，例如 08:30 或 14:05");
+      return null;
+    }
+    let h = parseInt(m[1], 10);
+    let mi = parseInt(m[2], 10);
+    if (h < 0 || h > 23 || mi < 0 || mi > 59) {
+      alert(label + " 時間不合理，請輸入 00:00 ～ 23:59");
+      return null;
+    }
+    const hh = String(h).padStart(2, "0");
+    const mm = String(mi).padStart(2, "0");
+    return hh + ":" + mm;
+  }
+
+  function sortRecords(){
+    records.sort((a,b)=>{
+      if(a.date !== b.date) return a.date.localeCompare(b.date);
+      return (a.arrive||"99:99").localeCompare(b.arrive||"99:99");
+    });
+  }
+
+  function renderTable(){
+    recordTbody.innerHTML = "";
+    if(records.length === 0){
+      noDataText.style.display = "block";
+      return;
+    }
+    noDataText.style.display = "none";
+
+    records.forEach((r,i)=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${i+1}</td>
+        <td>${r.date}</td>
+        <td>${r.type}</td>
+        <td>${r.arrive || "-"}</td>
+        <td>${r.leave || "-"}</td>
+        <td><button class="btn-danger" onclick="deleteRecord(${i})">刪除</button></td>
+      `;
+      recordTbody.appendChild(tr);
+    });
+  }
+
+  function generateText(){
+    if(records.length === 0){
+      outputText.value = "尚無紀錄";
+      return;
+    }
+    outputText.value = records.map(r =>
+      `${r.date.replace(/-/g,"/")}  ${r.type} 到廠：${r.arrive||"-"} 離廠：${r.leave||"-"}`
+    ).join("\n");
+  }
+
+  document.getElementById("addRecordBtn").onclick = () => {
+    const date = dateInput.value;
+    const type = vehicleTypeInput.value.trim();
+    const arriveRaw = arriveTimeEl.value;
+    const leaveRaw = leaveTimeEl.value;
+
+    if (!date) {
+      alert("請選擇日期");
+      return;
+    }
+    if (!type) {
+      alert("請輸入車種");
+      return;
+    }
+    if (!arriveRaw.trim() && !leaveRaw.trim()) {
+      alert("到廠時間與離廠時間至少填一個");
+      return;
+    }
+
+    const arrive = normalizeTime(arriveRaw, "到廠時間");
+    if (arrive === null) return;
+    const leave = normalizeTime(leaveRaw, "離廠時間");
+    if (leave === null) return;
+
+    records.push({date, type, arrive, leave});
+    sortRecords();
+    renderTable();
+    generateText();
+
+    // ➤ 新增後清空車種與時間（保留日期）
+    vehicleTypeInput.value = "";
+    arriveTimeEl.value = "";
+    leaveTimeEl.value = "";
+  };
+
+  window.deleteRecord = (i)=>{
+    records.splice(i,1);
+    sortRecords();
+    renderTable();
+    generateText();
+  };
+
+  document.getElementById("copyBtn").onclick = async () => {
+    const text = outputText.value;
+    if (!text || text === "尚無紀錄") {
+      alert("目前沒有可複製的內容");
+      return;
+    }
+    await navigator.clipboard.writeText(text);
+    messageEl.textContent = "已複製！";
+    setTimeout(()=>messageEl.textContent="",2000);
+  };
+
+  document.getElementById("generateTextBtn").onclick = () => {
+    sortRecords();
+    generateText();
+    messageEl.textContent = "已重新整理";
+    setTimeout(()=>messageEl.textContent="",2000);
+  };
+
+  document.getElementById("clearBtn").onclick = () => {
+    if (confirm("確定要清除全部紀錄嗎？")) {
+      records.length = 0;
+      renderTable();
+      generateText();
+    }
+  };
+
+  document.getElementById("saveBtn").onclick = () => {
+    const blob = new Blob([JSON.stringify(records,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "vehicle_records.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // 初始畫面
+  renderTable();
+  generateText();
+</script>
+
+</body>
+</html>
