@@ -3,88 +3,172 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>車輛到離廠紀錄（24小時制文字輸入）</title>
+  <title>車輛到廠／離廠紀錄</title>
 
   <style>
+    /* ===== 基本佈景 ===== */
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #f5f5f5;
       margin: 0;
-      padding: 16px;
+      padding: 24px 8px;
     }
     .container {
-      max-width: 960px;
+      max-width: 900px;
       margin: 0 auto;
       background: #ffffff;
-      padding: 16px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 24px 24px 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
     }
     h1 {
       text-align: center;
-      font-size: 20px;
-      margin-bottom: 16px;
+      font-size: 22px;
+      margin: 0 0 18px;
+      letter-spacing: 1px;
     }
+
+    /* ===== 表單排版 ===== */
     .form-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 12px;
+      gap: 12px;
+      align-items: flex-end;
+      margin-bottom: 10px;
     }
     .form-group {
-      flex: 1;
-      min-width: 120px;
       display: flex;
       flex-direction: column;
+      flex: 1;
+      min-width: 160px;
     }
-    label { font-size: 13px; margin-bottom: 4px; }
+    .form-group.button-group {
+      flex: 0 0 auto;               /* 按鈕寬度固定 */
+      min-width: 130px;
+    }
+    label {
+      font-size: 14px;
+      margin-bottom: 4px;
+      color: #444;
+      font-weight: 500;
+    }
     input[type="text"],
     input[type="date"] {
-      padding: 6px 8px;
-      font-size: 14px;
+      padding: 8px 10px;
+      font-size: 15px;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 6px;
       box-sizing: border-box;
+      height: 40px;                 /* 統一高度 */
     }
+    input::placeholder {
+      color: #aaa;
+      font-size: 13px;
+    }
+    input:focus,
+    textarea:focus {
+      border-color: #1e88e5;
+      box-shadow: 0 0 0 2px rgba(30,136,229,0.18);
+      outline: none;
+    }
+
+    /* ===== 按鈕 ===== */
     button {
-      padding: 8px 12px;
+      padding: 9px 14px;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       font-size: 14px;
       cursor: pointer;
+      font-weight: 500;
     }
-    .btn-primary { background: #007bff; color: #fff; }
-    .btn-danger { background: #dc3545; color: #fff; }
-    .btn-copy { background: #28a745; color: #fff; }
-    .btn-secondary { background: #6c757d; color: #fff; }
-    .btn-warning { background: #ff9800; color: #fff; }
-    .flex-end { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 12px; }
+    .btn-primary   { background: #1e88e5; color: #fff; }
+    .btn-danger    { background: #e53935; color: #fff; }
+    .btn-copy      { background: #43a047; color: #fff; }
+    .btn-secondary { background: #616161; color: #fff; }
+    .btn-warning   { background: #fb8c00; color: #fff; }
+    button:active  { transform: translateY(1px); opacity: 0.95; }
 
+    .flex-end {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    /* ===== 表格 ===== */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 8px;
+      margin-top: 12px;
+      font-size: 14px;
     }
     th, td {
       border: 1px solid #ddd;
-      padding: 6px;
+      padding: 6px 8px;
       text-align: center;
       white-space: nowrap;
     }
-    th { background: #f0f0f0; }
+    th {
+      background: #f3f3f3;
+      font-weight: 600;
+    }
+    #noDataText {
+      text-align: center;
+      color: #888;
+      margin-top: 8px;
+      font-size: 13px;
+    }
 
+    /* ===== 複製文字區 ===== */
+    h3 {
+      margin-top: 18px;
+      margin-bottom: 6px;
+      font-size: 16px;
+    }
     textarea {
       width: 100%;
-      min-height: 140px;
-      padding: 8px;
+      min-height: 150px;
+      padding: 10px 12px;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 6px;
       resize: vertical;
-      margin-top: 8px;
       box-sizing: border-box;
+      font-size: 16px;        /* 字加大 */
+      line-height: 1.5;
+      color: #222;            /* 字顏色較深 */
+      font-weight: 500;       /* 字稍微加粗 */
     }
-    .message { font-size: 13px; color: #28a745; margin-top: 5px; height: 18px; }
-    .hint { font-size: 12px; color: #666; margin-top: 4px; }
+    .message {
+      font-size: 13px;
+      color: #43a047;
+      margin-top: 6px;
+      min-height: 16px;
+    }
+    .hint {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    /* ===== 手機版調整 ===== */
+    @media (max-width: 640px) {
+      .container {
+        padding: 16px 14px 18px;
+      }
+      .form-group {
+        min-width: 100%;
+      }
+      .form-group.button-group {
+        width: 100%;
+      }
+      button {
+        width: 100%;
+      }
+      .flex-end {
+        justify-content: flex-start;
+      }
+    }
   </style>
 </head>
 
@@ -92,6 +176,7 @@
   <div class="container">
     <h1>車輛到廠／離廠紀錄</h1>
 
+    <!-- 輸入列：日期、車種、到廠、離廠、按鈕 全部同一行 -->
     <div class="form-row">
       <div class="form-group">
         <label>日期</label>
@@ -100,7 +185,8 @@
 
       <div class="form-group">
         <label>車種（可輸入或選擇）</label>
-        <input list="vehiclePresets" id="vehicleTypeInput" placeholder="3PL幹線車(南車) / 爆量車1 / ES車 / 自訂" />
+        <input list="vehiclePresets" id="vehicleTypeInput"
+               placeholder="3PL幹線車(南車) / 爆量車1 / ES車 / 自訂" />
         <datalist id="vehiclePresets">
           <option value="3PL幹線車(南車)"></option>
           <option value="爆量車1"></option>
@@ -111,16 +197,16 @@
       </div>
 
       <div class="form-group">
-        <label>到廠時間（24小時制，格式 HH:MM）</label>
+        <label>到廠時間（24小時制 HH:MM）</label>
         <input type="text" id="arriveTime" placeholder="例如：08:30 或 14:05" />
       </div>
 
       <div class="form-group">
-        <label>離廠時間（24小時制，格式 HH:MM）</label>
+        <label>離廠時間（24小時制 HH:MM）</label>
         <input type="text" id="leaveTime" placeholder="例如：09:10 或 16:45" />
       </div>
 
-      <div class="form-group" style="align-self:flex-end; min-width:120px;">
+      <div class="form-group button-group">
         <button class="btn-primary" id="addRecordBtn">新增紀錄</button>
       </div>
     </div>
@@ -129,6 +215,7 @@
       ※ 時間請使用 24 小時制，例如：08:05、14:30（不會有上午／下午）。
     </div>
 
+    <!-- 紀錄表格 -->
     <table>
       <thead>
         <tr>
@@ -142,9 +229,10 @@
       </thead>
       <tbody id="recordTbody"></tbody>
     </table>
-    <div id="noDataText" style="text-align:center; color:#777; margin-top:8px;">尚無紀錄</div>
+    <div id="noDataText">尚無紀錄</div>
 
-    <h3 style="margin-top:20px;">整理內容（可複製貼到通訊軟體）</h3>
+    <!-- 複製文字區 -->
+    <h3>整理內容（可複製貼到通訊軟體）</h3>
     <textarea id="outputText" readonly>尚無紀錄</textarea>
 
     <div class="flex-end">
@@ -160,29 +248,29 @@
 <script>
   const records = [];
 
-  const dateInput = document.getElementById("dateInput");
-  const vehicleTypeInput = document.getElementById("vehicleTypeInput");
-  const arriveTimeEl = document.getElementById("arriveTime");
-  const leaveTimeEl = document.getElementById("leaveTime");
-  const recordTbody = document.getElementById("recordTbody");
-  const outputText = document.getElementById("outputText");
-  const messageEl = document.getElementById("message");
-  const noDataText = document.getElementById("noDataText");
+  const dateInput       = document.getElementById("dateInput");
+  const vehicleTypeInput= document.getElementById("vehicleTypeInput");
+  const arriveTimeEl    = document.getElementById("arriveTime");
+  const leaveTimeEl     = document.getElementById("leaveTime");
+  const recordTbody     = document.getElementById("recordTbody");
+  const outputText      = document.getElementById("outputText");
+  const messageEl       = document.getElementById("message");
+  const noDataText      = document.getElementById("noDataText");
 
   // 預設日期為今天
   dateInput.valueAsDate = new Date();
 
-  // 文字時間轉成 24 小時 HH:MM，並檢查是否有效
+  // 文字時間 → 正規 24 小時 HH:MM，並檢查是否合理
   function normalizeTime(str, label) {
     str = (str || "").trim();
-    if (!str) return ""; // 允許空白（只填到廠或只填離廠）
+    if (!str) return ""; // 允許空白
 
     const m = str.match(/^(\d{1,2}):(\d{1,2})$/);
     if (!m) {
       alert(label + " 請輸入 24 小時制時間，格式為 HH:MM，例如 08:30 或 14:05");
       return null;
     }
-    let h = parseInt(m[1], 10);
+    let h  = parseInt(m[1], 10);
     let mi = parseInt(m[2], 10);
     if (h < 0 || h > 23 || mi < 0 || mi > 59) {
       alert(label + " 時間不合理，請輸入 00:00 ～ 23:59");
@@ -193,16 +281,16 @@
     return hh + ":" + mm;
   }
 
-  function sortRecords(){
+  function sortRecords() {
     records.sort((a,b)=>{
-      if(a.date !== b.date) return a.date.localeCompare(b.date);
-      return (a.arrive||"99:99").localeCompare(b.arrive||"99:99");
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      return (a.arrive || "99:99").localeCompare(b.arrive || "99:99");
     });
   }
 
-  function renderTable(){
+  function renderTable() {
     recordTbody.innerHTML = "";
-    if(records.length === 0){
+    if (records.length === 0) {
       noDataText.style.display = "block";
       return;
     }
@@ -222,8 +310,8 @@
     });
   }
 
-  function generateText(){
-    if(records.length === 0){
+  function generateText() {
+    if (records.length === 0) {
       outputText.value = "尚無紀錄";
       return;
     }
@@ -233,10 +321,10 @@
   }
 
   document.getElementById("addRecordBtn").onclick = () => {
-    const date = dateInput.value;
-    const type = vehicleTypeInput.value.trim();
+    const date      = dateInput.value;
+    const type      = vehicleTypeInput.value.trim();
     const arriveRaw = arriveTimeEl.value;
-    const leaveRaw = leaveTimeEl.value;
+    const leaveRaw  = leaveTimeEl.value;
 
     if (!date) {
       alert("請選擇日期");
@@ -253,21 +341,21 @@
 
     const arrive = normalizeTime(arriveRaw, "到廠時間");
     if (arrive === null) return;
-    const leave = normalizeTime(leaveRaw, "離廠時間");
+    const leave  = normalizeTime(leaveRaw, "離廠時間");
     if (leave === null) return;
 
-    records.push({date, type, arrive, leave});
+    records.push({ date, type, arrive, leave });
     sortRecords();
     renderTable();
     generateText();
 
-    // ➤ 新增後清空車種與時間（保留日期）
+    // 新增後清空：車種與時間，保留日期
     vehicleTypeInput.value = "";
     arriveTimeEl.value = "";
     leaveTimeEl.value = "";
   };
 
-  window.deleteRecord = (i)=>{
+  window.deleteRecord = (i) => {
     records.splice(i,1);
     sortRecords();
     renderTable();
@@ -302,8 +390,8 @@
 
   document.getElementById("saveBtn").onclick = () => {
     const blob = new Blob([JSON.stringify(records,null,2)], {type:"application/json"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
     a.href = url;
     a.download = "vehicle_records.json";
     a.click();
