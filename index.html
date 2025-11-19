@@ -76,15 +76,21 @@
       outline: none;
     }
 
-    /* 車種快速選擇 */
+    /* ===== 車種快速選擇（九宮格風格） ===== */
     .quick-types {
       margin-top: 6px;
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
     }
+    .quick-label {
+      font-size: 12px;
+      color: #555;
+      flex: 0 0 100%;
+    }
     .quick-type-btn {
-      padding: 4px 8px;
+      flex: 1 1 calc(33.33% - 6px); /* 一行最多三顆 */
+      padding: 6px 4px;
       font-size: 12px;
       border-radius: 999px;
       border: none;
@@ -92,6 +98,8 @@
       background: #e3f2fd;
       color: #1565c0;
       font-weight: 500;
+      text-align: center;
+      white-space: nowrap;
     }
     .quick-type-btn:hover {
       background: #bbdefb;
@@ -248,13 +256,16 @@
           <option value="ES爆量車2"></option>
         </datalist>
 
-        <!-- 常用車種快速選擇（縮減版） -->
+        <!-- 常用車種快速選擇：三欄密集排版 -->
         <div class="quick-types">
-          <span style="font-size:12px;color:#555;margin-right:4px;">快速選擇：</span>
+          <span class="quick-label">快速選擇：</span>
           <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL幹線車(南車)')">3PL幹線車(南車)</button>
           <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL爆量車1')">3PL爆量車1</button>
           <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL爆量車2')">3PL爆量車2</button>
+          <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL爆量車3')">3PL爆量車3</button>
           <button type="button" class="quick-type-btn" onclick="setVehicleType('ES幹線車')">ES幹線車</button>
+          <button type="button" class="quick-type-btn" onclick="setVehicleType('ES爆量車1')">ES爆量車1</button>
+          <button type="button" class="quick-type-btn" onclick="setVehicleType('ES爆量車2')">ES爆量車2</button>
         </div>
       </div>
 
@@ -324,10 +335,13 @@
   const messageEl        = document.getElementById("message");
   const noDataText       = document.getElementById("noDataText");
 
-  // 取得今天日期字串：YYYY-MM-DD
+  // 取得今天日期字串（使用本地時間）
   function getTodayStr() {
     const now = new Date();
-    return now.toISOString().split("T")[0];
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
   }
 
   // 初始預設日期為今天（重新整理時會更新為當天）
@@ -454,7 +468,7 @@
   }
 
   document.getElementById("addRecordBtn").onclick = () => {
-    // 日期：如果空白，就幫忙填今天；如果你手動改過，就用你填的
+    // 日期：如果欄位是空的，就幫忙填今天；如果你有手動改，就用你輸入的
     let date = dateInput.value.trim();
     if (!date) {
       date = getTodayStr();
