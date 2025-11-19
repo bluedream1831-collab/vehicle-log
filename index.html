@@ -230,7 +230,7 @@
     <!-- 輸入列 -->
     <div class="form-row">
       <div class="form-group field-group">
-        <label>日期</label>
+        <label>日期（預設為今天，可手動修改）</label>
         <input type="date" id="dateInput" />
       </div>
 
@@ -274,7 +274,7 @@
     </div>
 
     <div class="hint">
-      ※ 時間可輸入 <b>純數字</b> 或 HH:MM，例如：0500 → 05:00，930 → 09:30。（資料會自動儲存）
+      ※ 時間可輸入 <b>純數字</b> 或 HH:MM，例如：0500 → 05:00，930 → 09:30。（資料會自動儲存於本機）
     </div>
 
     <!-- 表格 -->
@@ -324,8 +324,14 @@
   const messageEl        = document.getElementById("message");
   const noDataText       = document.getElementById("noDataText");
 
-  // 預設日期為今天
-  dateInput.valueAsDate = new Date();
+  // 取得今天日期字串：YYYY-MM-DD
+  function getTodayStr() {
+    const now = new Date();
+    return now.toISOString().split("T")[0];
+  }
+
+  // 初始預設日期為今天（重新整理時會更新為當天）
+  dateInput.value = getTodayStr();
 
   // 快速選擇車種
   function setVehicleType(type) {
@@ -448,15 +454,17 @@
   }
 
   document.getElementById("addRecordBtn").onclick = () => {
-    const date      = dateInput.value;
+    // 日期：如果空白，就幫忙填今天；如果你手動改過，就用你填的
+    let date = dateInput.value.trim();
+    if (!date) {
+      date = getTodayStr();
+      dateInput.value = date;
+    }
+
     const type      = vehicleTypeInput.value.trim();
     const arriveRaw = arriveTimeEl.value;
     const leaveRaw  = leaveTimeEl.value;
 
-    if (!date) {
-      alert("請選擇日期");
-      return;
-    }
     if (!type) {
       alert("請輸入車種");
       return;
@@ -480,7 +488,7 @@
     generateText();
     saveToStorage();  // 自動存檔
 
-    // 成功後保留日期，清空車種與時間
+    // 成功後保留日期欄位內容，清空車種與時間
     vehicleTypeInput.value = "";
     arriveTimeEl.value = "";
     leaveTimeEl.value  = "";
