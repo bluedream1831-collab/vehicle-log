@@ -39,13 +39,17 @@
     .form-group {
       display: flex;
       flex-direction: column;
-      flex: 1;
+    }
+    /* 四個欄位同寬：日期／車種／到廠／離廠 */
+    .field-group {
+      flex: 1 1 0;
       min-width: 160px;
     }
     .form-group.button-group {
-      flex: 0 0 auto;               /* 按鈕寬度固定 */
+      flex: 0 0 auto;
       min-width: 130px;
     }
+
     label {
       font-size: 14px;
       margin-bottom: 4px;
@@ -59,7 +63,7 @@
       border: 1px solid #ccc;
       border-radius: 6px;
       box-sizing: border-box;
-      height: 40px;                 /* 統一高度 */
+      height: 40px;
     }
     input::placeholder {
       color: #aaa;
@@ -70,6 +74,27 @@
       border-color: #1e88e5;
       box-shadow: 0 0 0 2px rgba(30,136,229,0.18);
       outline: none;
+    }
+
+    /* 車種快速選擇 */
+    .quick-types {
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .quick-type-btn {
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: #e3f2fd;
+      color: #1565c0;
+      font-weight: 500;
+    }
+    .quick-type-btn:hover {
+      background: #bbdefb;
     }
 
     /* ===== 按鈕 ===== */
@@ -83,17 +108,36 @@
     }
     .btn-primary   { background: #1e88e5; color: #fff; }
     .btn-danger    { background: #e53935; color: #fff; }
-    .btn-copy      { background: #43a047; color: #fff; }
     .btn-secondary { background: #616161; color: #fff; }
     .btn-warning   { background: #fb8c00; color: #fff; }
     button:active  { transform: translateY(1px); opacity: 0.95; }
 
-    .flex-end {
+    /* 大顆複製按鈕 */
+    .btn-copy-big {
+      background: #43a047;
+      color: #fff;
+      padding: 11px 22px;
+      font-size: 16px;
+      font-weight: 600;
+      min-width: 150px;
+    }
+
+    .actions-row {
       display: flex;
-      gap: 8px;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
       flex-wrap: wrap;
       margin-top: 10px;
+      gap: 10px;
+    }
+    .actions-left {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .actions-right {
+      display: flex;
+      justify-content: flex-end;
     }
 
     /* ===== 表格 ===== */
@@ -134,10 +178,10 @@
       border-radius: 6px;
       resize: vertical;
       box-sizing: border-box;
-      font-size: 16px;        /* 字加大 */
+      font-size: 16px;
       line-height: 1.5;
-      color: #222;            /* 字顏色較深 */
-      font-weight: 500;       /* 字稍微加粗 */
+      color: #222;
+      font-weight: 500;
     }
     .message {
       font-size: 13px;
@@ -151,12 +195,12 @@
       margin-top: 4px;
     }
 
-    /* ===== 手機版調整 ===== */
+    /* ===== 手機版 ===== */
     @media (max-width: 640px) {
       .container {
         padding: 16px 14px 18px;
       }
-      .form-group {
+      .field-group {
         min-width: 100%;
       }
       .form-group.button-group {
@@ -165,8 +209,15 @@
       button {
         width: 100%;
       }
-      .flex-end {
+      .actions-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .actions-left, .actions-right {
         justify-content: flex-start;
+      }
+      .btn-copy-big {
+        width: 100%;
       }
     }
   </style>
@@ -176,34 +227,48 @@
   <div class="container">
     <h1>車輛到廠／離廠紀錄</h1>
 
-    <!-- 輸入列：日期、車種、到廠、離廠、按鈕 全部同一行 -->
+    <!-- 輸入列 -->
     <div class="form-row">
-      <div class="form-group">
+      <div class="form-group field-group">
         <label>日期</label>
         <input type="date" id="dateInput" />
       </div>
 
-      <div class="form-group">
+      <div class="form-group field-group">
         <label>車種（可輸入或選擇）</label>
         <input list="vehiclePresets" id="vehicleTypeInput"
-               placeholder="3PL幹線車(南車) / 爆量車1 / ES車 / 自訂" />
+               placeholder="3PL幹線車(南車) / 3PL爆量車1 / ES幹線車 / 自訂" />
         <datalist id="vehiclePresets">
           <option value="3PL幹線車(南車)"></option>
-          <option value="爆量車1"></option>
-          <option value="爆量車2"></option>
-          <option value="爆量車3"></option>
-          <option value="ES車"></option>
+          <option value="3PL爆量車1"></option>
+          <option value="3PL爆量車2"></option>
+          <option value="3PL爆量車3"></option>
+          <option value="ES幹線車"></option>
+          <option value="ES爆量車1"></option>
+          <option value="ES爆量車2"></option>
         </datalist>
+
+        <!-- 常用車種快速選擇 -->
+        <div class="quick-types">
+          <span style="font-size:12px;color:#555;margin-right:4px;">快速選擇：</span>
+          <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL幹線車(南車)')">3PL幹線車(南車)</button>
+          <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL爆量車1')">3PL爆量車1</button>
+          <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL爆量車2')">3PL爆量車2</button>
+          <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL爆量車3')">3PL爆量車3</button>
+          <button type="button" class="quick-type-btn" onclick="setVehicleType('ES幹線車')">ES幹線車</button>
+          <button type="button" class="quick-type-btn" onclick="setVehicleType('ES爆量車1')">ES爆量車1</button>
+          <button type="button" class="quick-type-btn" onclick="setVehicleType('ES爆量車2')">ES爆量車2</button>
+        </div>
       </div>
 
-      <div class="form-group">
+      <div class="form-group field-group">
         <label>到廠時間（24小時制 HH:MM）</label>
-        <input type="text" id="arriveTime" placeholder="例如：08:30 或 14:05" />
+        <input type="text" id="arriveTime" placeholder="例如：0830 或 14:05" />
       </div>
 
-      <div class="form-group">
+      <div class="form-group field-group">
         <label>離廠時間（24小時制 HH:MM）</label>
-        <input type="text" id="leaveTime" placeholder="例如：09:10 或 16:45" />
+        <input type="text" id="leaveTime" placeholder="例如：0930 或 16:45" />
       </div>
 
       <div class="form-group button-group">
@@ -212,10 +277,10 @@
     </div>
 
     <div class="hint">
-      ※ 時間請使用 24 小時制，例如：08:05、14:30（不會有上午／下午）。
+      ※ 時間可輸入 <b>純數字</b> 或 HH:MM，例如：0500 → 05:00，930 → 09:30。
     </div>
 
-    <!-- 紀錄表格 -->
+    <!-- 表格 -->
     <table>
       <thead>
         <tr>
@@ -235,11 +300,16 @@
     <h3>整理內容（可複製貼到通訊軟體）</h3>
     <textarea id="outputText" readonly>尚無紀錄</textarea>
 
-    <div class="flex-end">
-      <button class="btn-secondary" id="generateTextBtn">重新整理</button>
-      <button class="btn-copy" id="copyBtn">一鍵複製</button>
-      <button class="btn-warning" id="saveBtn">一鍵儲存</button>
-      <button class="btn-danger" id="clearBtn">一鍵清除</button>
+    <!-- 按鈕列：左側三顆，右側一大顆複製 -->
+    <div class="actions-row">
+      <div class="actions-left">
+        <button class="btn-secondary" id="generateTextBtn">重新整理</button>
+        <button class="btn-warning" id="saveBtn">一鍵儲存</button>
+        <button class="btn-danger" id="clearBtn">一鍵清除</button>
+      </div>
+      <div class="actions-right">
+        <button class="btn-copy-big" id="copyBtn">一鍵複製</button>
+      </div>
     </div>
 
     <div id="message" class="message"></div>
@@ -248,41 +318,67 @@
 <script>
   const records = [];
 
-  const dateInput       = document.getElementById("dateInput");
-  const vehicleTypeInput= document.getElementById("vehicleTypeInput");
-  const arriveTimeEl    = document.getElementById("arriveTime");
-  const leaveTimeEl     = document.getElementById("leaveTime");
-  const recordTbody     = document.getElementById("recordTbody");
-  const outputText      = document.getElementById("outputText");
-  const messageEl       = document.getElementById("message");
-  const noDataText      = document.getElementById("noDataText");
+  const dateInput        = document.getElementById("dateInput");
+  const vehicleTypeInput = document.getElementById("vehicleTypeInput");
+  const arriveTimeEl     = document.getElementById("arriveTime");
+  const leaveTimeEl      = document.getElementById("leaveTime");
+  const recordTbody      = document.getElementById("recordTbody");
+  const outputText       = document.getElementById("outputText");
+  const messageEl        = document.getElementById("message");
+  const noDataText       = document.getElementById("noDataText");
 
   // 預設日期為今天
   dateInput.valueAsDate = new Date();
 
-  // 文字時間 → 正規 24 小時 HH:MM，並檢查是否合理
+  // 快速選擇車種
+  function setVehicleType(type) {
+    vehicleTypeInput.value = type;
+    vehicleTypeInput.focus();
+  }
+  window.setVehicleType = setVehicleType; // 讓 HTML onclick 找得到
+
+  // 文字時間 → 正規 24 小時 HH:MM，支援 0830 / 930 / 8:30 / 08:30
   function normalizeTime(str, label) {
     str = (str || "").trim();
     if (!str) return ""; // 允許空白
 
-    const m = str.match(/^(\d{1,2}):(\d{1,2})$/);
-    if (!m) {
-      alert(label + " 請輸入 24 小時制時間，格式為 HH:MM，例如 08:30 或 14:05");
-      return null;
+    // 情況1：有冒號 HH:MM 或 H:M
+    let m = str.match(/^(\d{1,2}):(\d{1,2})$/);
+    if (m) {
+      let h  = parseInt(m[1], 10);
+      let mi = parseInt(m[2], 10);
+      if (h < 0 || h > 23 || mi < 0 || mi > 59) {
+        alert(label + " 時間不合理，請輸入 00:00～23:59");
+        return null;
+      }
+      return String(h).padStart(2, "0") + ":" + String(mi).padStart(2, "0");
     }
-    let h  = parseInt(m[1], 10);
-    let mi = parseInt(m[2], 10);
-    if (h < 0 || h > 23 || mi < 0 || mi > 59) {
-      alert(label + " 時間不合理，請輸入 00:00 ～ 23:59");
-      return null;
+
+    // 情況2：純數字，長度 3 或 4，例如 930, 1430, 0500
+    m = str.match(/^(\d{3,4})$/);
+    if (m) {
+      const numStr = m[1];
+      let h, mi;
+      if (numStr.length === 3) {
+        h  = parseInt(numStr.slice(0, 1), 10);
+        mi = parseInt(numStr.slice(1), 10);
+      } else {
+        h  = parseInt(numStr.slice(0, 2), 10);
+        mi = parseInt(numStr.slice(2), 10);
+      }
+      if (h < 0 || h > 23 || mi < 0 || mi > 59) {
+        alert(label + " 時間不合理，請輸入 000～2359 或 0000～2359");
+        return null;
+      }
+      return String(h).padStart(2, "0") + ":" + String(mi).padStart(2, "0");
     }
-    const hh = String(h).padStart(2, "0");
-    const mm = String(mi).padStart(2, "0");
-    return hh + ":" + mm;
+
+    alert(label + " 請輸入 24 小時制時間，例如 0830、930 或 08:30");
+    return null;
   }
 
   function sortRecords() {
-    records.sort((a,b)=>{
+    records.sort((a, b) => {
       if (a.date !== b.date) return a.date.localeCompare(b.date);
       return (a.arrive || "99:99").localeCompare(b.arrive || "99:99");
     });
@@ -296,10 +392,10 @@
     }
     noDataText.style.display = "none";
 
-    records.forEach((r,i)=>{
+    records.forEach((r, i) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${i+1}</td>
+        <td>${i + 1}</td>
         <td>${r.date}</td>
         <td>${r.type}</td>
         <td>${r.arrive || "-"}</td>
@@ -316,7 +412,7 @@
       return;
     }
     outputText.value = records.map(r =>
-      `${r.date.replace(/-/g,"/")}  ${r.type} 到廠：${r.arrive||"-"} 離廠：${r.leave||"-"}`
+      `${r.date.replace(/-/g,"/")}  ${r.type} 到廠：${r.arrive || "-"} 離廠：${r.leave || "-"}`
     ).join("\n");
   }
 
@@ -344,19 +440,23 @@
     const leave  = normalizeTime(leaveRaw, "離廠時間");
     if (leave === null) return;
 
+    // 把格式化後的時間寫回輸入框（如果有填）
+    if (arrive) arriveTimeEl.value = arrive;
+    if (leave)  leaveTimeEl.value  = leave;
+
     records.push({ date, type, arrive, leave });
     sortRecords();
     renderTable();
     generateText();
 
-    // 新增後清空：車種與時間，保留日期
+    // 成功後保留日期，清空車種與時間
     vehicleTypeInput.value = "";
     arriveTimeEl.value = "";
-    leaveTimeEl.value = "";
+    leaveTimeEl.value  = "";
   };
 
   window.deleteRecord = (i) => {
-    records.splice(i,1);
+    records.splice(i, 1);
     sortRecords();
     renderTable();
     generateText();
@@ -370,14 +470,14 @@
     }
     await navigator.clipboard.writeText(text);
     messageEl.textContent = "已複製！";
-    setTimeout(()=>messageEl.textContent="",2000);
+    setTimeout(() => (messageEl.textContent = ""), 2000);
   };
 
   document.getElementById("generateTextBtn").onclick = () => {
     sortRecords();
     generateText();
     messageEl.textContent = "已重新整理";
-    setTimeout(()=>messageEl.textContent="",2000);
+    setTimeout(() => (messageEl.textContent = ""), 2000);
   };
 
   document.getElementById("clearBtn").onclick = () => {
@@ -389,9 +489,11 @@
   };
 
   document.getElementById("saveBtn").onclick = () => {
-    const blob = new Blob([JSON.stringify(records,null,2)], {type:"application/json"});
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
+    const blob = new Blob([JSON.stringify(records, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
     a.href = url;
     a.download = "vehicle_records.json";
     a.click();
