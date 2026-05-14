@@ -1,557 +1,331 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>車輛到廠／離廠紀錄</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>車輛棧板紀錄工具</title>
+    <style>
+        :root {
+            --primary-blue: #007bff;
+            --secondary-gray: #6c757d;
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+            --bg-light: #f4f7f6;
+        }
 
-  <style>
-    /* ===== 基本佈景 ===== */
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 24px 8px;
-    }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: #ffffff;
-      padding: 24px 24px 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    }
-    h1 {
-      text-align: center;
-      font-size: 22px;
-      margin: 0 0 18px;
-      letter-spacing: 1px;
-    }
+        * { box-sizing: border-box; }
 
-    /* ===== 表單排版 ===== */
-    .form-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: flex-end;
-      margin-bottom: 10px;
-    }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-    }
-    /* 四個欄位同寬：日期／車種／到廠／離廠 */
-    .field-group {
-      flex: 1 1 0;
-      min-width: 160px;
-    }
-    .form-group.button-group {
-      flex: 0 0 auto;
-      min-width: 130px;
-    }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
 
-    label {
-      font-size: 14px;
-      margin-bottom: 4px;
-      color: #444;
-      font-weight: 500;
-    }
-    input[type="text"],
-    input[type="date"] {
-      padding: 8px 10px;
-      font-size: 15px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-      height: 40px;
-    }
-    input::placeholder {
-      color: #aaa;
-      font-size: 13px;
-    }
-    input:focus,
-    textarea:focus {
-      border-color: #1e88e5;
-      box-shadow: 0 0 0 2px rgba(30,136,229,0.18);
-      outline: none;
-    }
+        /* 主容器 */
+        .container {
+            background: white;
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
 
-    /* ===== 車種快速選擇（九宮格風格） ===== */
-    .quick-types {
-      margin-top: 6px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .quick-label {
-      font-size: 12px;
-      color: #555;
-      flex: 0 0 100%;
-    }
-    .quick-type-btn {
-      flex: 1 1 calc(33.33% - 6px); /* 一行最多三顆 */
-      padding: 6px 4px;
-      font-size: 12px;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      background: #e3f2fd;
-      color: #1565c0;
-      font-weight: 500;
-      text-align: center;
-      white-space: nowrap;
-    }
-    .quick-type-btn:hover {
-      background: #bbdefb;
-    }
+        h2 { text-align: center; font-size: 1.3rem; margin: 10px 0 20px; color: #333; }
 
-    /* ===== 按鈕 ===== */
-    button {
-      padding: 9px 14px;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-      font-weight: 500;
-    }
-    .btn-primary   { background: #1e88e5; color: #fff; }
-    .btn-danger    { background: #e53935; color: #fff; }
-    .btn-secondary { background: #616161; color: #fff; }
-    button:active  { transform: translateY(1px); opacity: 0.95; }
+        .input-group { margin-bottom: 12px; }
 
-    /* 大顆複製按鈕 */
-    .btn-copy-big {
-      background: #43a047;
-      color: #fff;
-      padding: 11px 22px;
-      font-size: 16px;
-      font-weight: 600;
-      min-width: 150px;
-    }
+        label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #444; }
 
-    .actions-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-top: 10px;
-      gap: 10px;
-    }
-    .actions-left {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .actions-right {
-      display: flex;
-      justify-content: flex-end;
-    }
+        input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
 
-    /* ===== 表格 ===== */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 12px;
-      font-size: 14px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 6px 8px;
-      text-align: center;
-      white-space: nowrap;
-    }
-    th {
-      background: #f3f3f3;
-      font-weight: 600;
-    }
-    #noDataText {
-      text-align: center;
-      color: #888;
-      margin-top: 8px;
-      font-size: 13px;
-    }
+        .quick-select {
+            margin: 8px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
 
-    /* ===== 複製文字區 ===== */
-    h3 {
-      margin-top: 18px;
-      margin-bottom: 6px;
-      font-size: 16px;
-    }
-    textarea {
-      width: 100%;
-      min-height: 150px;
-      padding: 10px 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      resize: vertical;
-      box-sizing: border-box;
-      font-size: 16px;
-      line-height: 1.6;
-      color: #222;
-      font-weight: 500;
-      white-space: pre-wrap;
-    }
-    .message {
-      font-size: 13px;
-      color: #43a047;
-      margin-top: 6px;
-      min-height: 16px;
-    }
-    .hint {
-      font-size: 12px;
-      color: #666;
-      margin-top: 4px;
-    }
+        .tag {
+            background: #eef6ff;
+            color: #007bff;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            border: 1px solid #cce5ff;
+            cursor: pointer;
+        }
 
-    /* ===== 手機版 ===== */
-    @media (max-width: 640px) {
-      .container {
-        padding: 16px 14px 18px;
-      }
-      .field-group {
-        min-width: 100%;
-      }
-      .form-group.button-group {
-        width: 100%;
-      }
-      button {
-        width: 100%;
-      }
-      .actions-row {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .actions-left, .actions-right {
-        justify-content: flex-start;
-      }
-      .btn-copy-big {
-        width: 100%;
-      }
-    }
-  </style>
+        .tag:active { background: #007bff; color: white; }
+
+        .grid-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .pallet-section {
+            background: #fff9e6;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ffeeba;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 12px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn-add { background-color: var(--primary-blue); color: white; width: 100%; margin-top: 10px; }
+
+        .record-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-left: 5px solid var(--primary-blue);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #777;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 5px;
+            margin-bottom: 8px;
+        }
+
+        .record-body { font-size: 15px; line-height: 1.5; color: #333; }
+        .pallet-info { color: #d63384; font-weight: bold; }
+
+        .delete-link { color: var(--danger-red); text-decoration: none; font-size: 13px; }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-family: monospace;
+            font-size: 14px;
+            background: #f9f9f9;
+        }
+
+        .footer-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-copy { grid-column: span 2; background-color: var(--success-green); color: white; font-size: 18px; margin-top: 5px; }
+        .btn-clear { background-color: var(--danger-red); color: white; }
+        .btn-reset { background-color: var(--secondary-gray); color: white; }
+
+        .helper-text { font-size: 11px; color: #999; text-align: center; margin-top: 10px; }
+    </style>
 </head>
-
 <body>
-  <div class="container">
-    <h1>車輛到廠／離廠紀錄</h1>
 
-    <!-- 輸入列 -->
-    <div class="form-row">
-      <div class="form-group field-group">
-        <label>日期（預設為今天，可手動修改）</label>
-        <input type="date" id="dateInput" />
-      </div>
+<div class="container">
+    <h2>車輛棧板紀錄系統</h2>
 
-      <div class="form-group field-group">
-        <label>車種（可輸入或選擇）</label>
-        <input list="vehiclePresets" id="vehicleTypeInput"
-               placeholder="3PL幹線車(南車) / 3PL爆量車1 / ES幹線車 / 自訂" />
-        <datalist id="vehiclePresets">
-          <option value="3PL幹線車(南車)"></option>
-          <option value="3PL爆量車1"></option>
-          <option value="3PL爆量車2"></option>
-          <option value="3PL爆量車3"></option>
-          <option value="ES幹線車"></option>
-          <option value="ES爆量車1"></option>
-          <option value="ES爆量車2"></option>
-        </datalist>
+    <div class="input-group">
+        <label>日期（已預設今日）</label>
+        <input type="date" id="recordDate">
+    </div>
 
-        <!-- 常用車種快速選擇：三欄密集排版 -->
-        <div class="quick-types">
-          <span class="quick-label">快速選擇：</span>
-          <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL幹線車(南車)')">3PL幹線車(南車)</button>
-          <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL爆量車1')">3PL爆量車1</button>
-          <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL爆量車2')">3PL爆量車2</button>
-          <button type="button" class="quick-type-btn" onclick="setVehicleType('3PL爆量車3')">3PL爆量車3</button>
-          <button type="button" class="quick-type-btn" onclick="setVehicleType('ES幹線車')">ES幹線車</button>
-          <button type="button" class="quick-type-btn" onclick="setVehicleType('ES爆量車1')">ES爆量車1</button>
-          <button type="button" class="quick-type-btn" onclick="setVehicleType('ES爆量車2')">ES爆量車2</button>
+    <div class="input-group">
+        <label>車型選擇</label>
+        <input type="text" id="vehicleType" placeholder="請選標籤或手動輸入">
+        <div class="quick-select" id="quickSelect">
+            <span class="tag">3PL幹線(南)</span>
+            <span class="tag">3PL爆量1</span>
+            <span class="tag">3PL爆量2</span>
+            <span class="tag">3PL爆量3</span>
+            <span class="tag">3PL爆量4</span>
+            <span class="tag">3PL爆量5</span>
+            <span class="tag">ES幹線車</span>
+            <span class="tag">ES爆量1</span>
         </div>
-      </div>
-
-      <div class="form-group field-group">
-        <label>到廠時間（24小時制 HH:MM）</label>
-        <input type="text" id="arriveTime" placeholder="例如：0830 或 14:05" />
-      </div>
-
-      <div class="form-group field-group">
-        <label>離廠時間（24小時制 HH:MM）</label>
-        <input type="text" id="leaveTime" placeholder="例如：0930 或 16:45" />
-      </div>
-
-      <div class="form-group button-group">
-        <button class="btn-primary" id="addRecordBtn">新增紀錄</button>
-      </div>
     </div>
 
-    <div class="hint">
-      ※ 時間可輸入 <b>純數字</b> 或 HH:MM，例如：0500 → 05:00，930 → 09:30。（資料會自動儲存於本機）
+    <div class="grid-row">
+        <div>
+            <label>到廠時間</label>
+            <input type="text" id="arrivalTime" inputmode="numeric" placeholder="如 0830">
+        </div>
+        <div>
+            <label>離廠時間</label>
+            <input type="text" id="departureTime" inputmode="numeric" placeholder="如 1200">
+        </div>
     </div>
 
-    <!-- 表格 -->
-    <table>
-      <thead>
-        <tr>
-          <th>序號</th>
-          <th>日期</th>
-          <th>車種</th>
-          <th>到廠</th>
-          <th>離廠</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody id="recordTbody"></tbody>
-    </table>
-    <div id="noDataText">尚無紀錄</div>
-
-    <!-- 複製文字區 -->
-    <h3>整理內容（可複製貼到通訊軟體）</h3>
-    <textarea id="outputText" readonly>尚無紀錄</textarea>
-
-    <!-- 按鈕列：左側兩顆，右側一大顆複製 -->
-    <div class="actions-row">
-      <div class="actions-left">
-        <button class="btn-secondary" id="generateTextBtn">重新整理</button>
-        <button class="btn-danger" id="clearBtn">一鍵清除</button>
-      </div>
-      <div class="actions-right">
-        <button class="btn-copy-big" id="copyBtn">一鍵複製</button>
-      </div>
+    <div class="pallet-section grid-row">
+        <div>
+            <label>出庫棧板數</label>
+            <input type="number" id="outPallets" inputmode="numeric" placeholder="0">
+        </div>
+        <div>
+            <label>回庫棧板數</label>
+            <input type="number" id="inPallets" inputmode="numeric" placeholder="0">
+        </div>
     </div>
 
-    <div id="message" class="message"></div>
-  </div>
+    <button class="btn btn-add" onclick="addRecord()">＋ 新增此筆紀錄</button>
+
+    <div id="recordList"></div>
+
+    <div style="margin-top:20px;">
+        <label>整理內容 (複製用)：</label>
+        <textarea id="summaryText" readonly></textarea>
+    </div>
+
+    <div class="footer-btns">
+        <button class="btn btn-reset" onclick="location.reload()">重新整理頁面</button>
+        <button class="btn btn-clear" onclick="clearAllData()">清空所有紀錄</button>
+        <button class="btn btn-copy" onclick="copyText()">一鍵複製全部內容</button>
+    </div>
+</div>
 
 <script>
-  const records = [];
-  const STORAGE_KEY = "vehicle_records_v1";
-
-  const dateInput        = document.getElementById("dateInput");
-  const vehicleTypeInput = document.getElementById("vehicleTypeInput");
-  const arriveTimeEl     = document.getElementById("arriveTime");
-  const leaveTimeEl      = document.getElementById("leaveTime");
-  const recordTbody      = document.getElementById("recordTbody");
-  const outputText       = document.getElementById("outputText");
-  const messageEl        = document.getElementById("message");
-  const noDataText       = document.getElementById("noDataText");
-
-  // 取得今天日期字串（使用本地時間）
-  function getTodayStr() {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, "0");
-    const d = String(now.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }
-
-  // 初始預設日期為今天（重新整理時會更新為當天）
-  dateInput.value = getTodayStr();
-
-  // 快速選擇車種
-  function setVehicleType(type) {
-    vehicleTypeInput.value = type;
-    vehicleTypeInput.focus();
-  }
-  window.setVehicleType = setVehicleType;
-
-  // 自動儲存到 localStorage
-  function saveToStorage() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-    } catch (e) {
-      console.warn("無法儲存到瀏覽器：", e);
+    // 1. 初始化日期
+    function setTodayDate() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        document.getElementById('recordDate').value = `${year}-${month}-${day}`;
     }
-  }
+    setTodayDate();
 
-  function loadFromStorage() {
-    try {
-      const data = localStorage.getItem(STORAGE_KEY);
-      if (!data) return;
-      const parsed = JSON.parse(data);
-      if (!Array.isArray(parsed)) return;
-      records.push(...parsed);
-      sortRecords();
-      renderTable();
-      generateText();
-    } catch (e) {
-      console.warn("讀取儲存紀錄失敗：", e);
-    }
-  }
+    // 2. 資料處理
+    let records = JSON.parse(localStorage.getItem('vehicleFinalRecords')) || [];
 
-  // 文字時間 → 正規 24 小時 HH:MM，支援 0830 / 930 / 8:30 / 08:30
-  function normalizeTime(str, label) {
-    str = (str || "").trim();
-    if (!str) return ""; // 允許空白
-
-    // 情況1：有冒號 HH:MM 或 H:M
-    let m = str.match(/^(\d{1,2}):(\d{1,2})$/);
-    if (m) {
-      let h  = parseInt(m[1], 10);
-      let mi = parseInt(m[2], 10);
-      if (h < 0 || h > 23 || mi < 0 || mi > 59) {
-        alert(label + " 時間不合理，請輸入 00:00～23:59");
-        return null;
-      }
-      return String(h).padStart(2, "0") + ":" + String(mi).padStart(2, "0");
-    }
-
-    // 情況2：純數字，長度 3 或 4，例如 930, 1430, 0500
-    m = str.match(/^(\d{3,4})$/);
-    if (m) {
-      const numStr = m[1];
-      let h, mi;
-      if (numStr.length === 3) {
-        h  = parseInt(numStr.slice(0, 1), 10);
-        mi = parseInt(numStr.slice(1), 10);
-      } else {
-        h  = parseInt(numStr.slice(0, 2), 10);
-        mi = parseInt(numStr.slice(2), 10);
-      }
-      if (h < 0 || h > 23 || mi < 0 || mi > 59) {
-        alert(label + " 時間不合理，請輸入 000～2359 或 0000～2359");
-        return null;
-      }
-      return String(h).padStart(2, "0") + ":" + String(mi).padStart(2, "0");
-    }
-
-    alert(label + " 請輸入 24 小時制時間，例如 0830、930 或 08:30");
-    return null;
-  }
-
-  function sortRecords() {
-    records.sort((a, b) => {
-      if (a.date !== b.date) return a.date.localeCompare(b.date);
-      return (a.arrive || "99:99").localeCompare(b.arrive || "99:99");
+    document.getElementById('quickSelect').addEventListener('click', (e) => {
+        if (e.target.classList.contains('tag')) {
+            document.getElementById('vehicleType').value = e.target.innerText;
+        }
     });
-  }
 
-  function renderTable() {
-    recordTbody.innerHTML = "";
-    if (records.length === 0) {
-      noDataText.style.display = "block";
-      return;
-    }
-    noDataText.style.display = "none";
-
-    records.forEach((r, i) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${i + 1}</td>
-        <td>${r.date}</td>
-        <td>${r.type}</td>
-        <td>${r.arrive || "-"}</td>
-        <td>${r.leave || "-"}</td>
-        <td><button class="btn-danger" onclick="deleteRecord(${i})">刪除</button></td>
-      `;
-      recordTbody.appendChild(tr);
-    });
-  }
-
-  // 多行排版的輸出文字
-  function generateText() {
-    if (records.length === 0) {
-      outputText.value = "尚無紀錄";
-      return;
-    }
-    const lines = records.map(r => {
-      const dateStr = r.date.replace(/-/g, "/");
-      const arrive  = r.arrive || "-";
-      const leave   = r.leave  || "-";
-      return (
-        `${dateStr}  ${r.type}\n` +
-        `    到廠 ${arrive}\n` +
-        `    離廠 ${leave}`
-      );
-    });
-    // 每筆之間空一行
-    outputText.value = lines.join("\n\n");
-  }
-
-  document.getElementById("addRecordBtn").onclick = () => {
-    // 日期：如果欄位是空的，就幫忙填今天；如果你有手動改，就用你輸入的
-    let date = dateInput.value.trim();
-    if (!date) {
-      date = getTodayStr();
-      dateInput.value = date;
+    function formatTime(val) {
+        val = val.replace(/:/g, '').trim();
+        if (val.length === 4 && !isNaN(val)) return val.substring(0, 2) + ':' + val.substring(2, 4);
+        return val;
     }
 
-    const type      = vehicleTypeInput.value.trim();
-    const arriveRaw = arriveTimeEl.value;
-    const leaveRaw  = leaveTimeEl.value;
+    function addRecord() {
+        const type = document.getElementById('vehicleType').value;
+        const date = document.getElementById('recordDate').value;
+        const arr = formatTime(document.getElementById('arrivalTime').value);
+        const dep = formatTime(document.getElementById('departureTime').value);
+        const outP = document.getElementById('outPallets').value || 0;
+        const inP = document.getElementById('inPallets').value || 0;
 
-    if (!type) {
-      alert("請輸入車種");
-      return;
+        if (!type || !arr) {
+            alert('請填寫車型與到廠時間');
+            return;
+        }
+
+        records.push({
+            id: Date.now(),
+            date, type, arrival: arr, departure: dep || '--',
+            outPallets: outP, inPallets: inP
+        });
+
+        save();
+        document.getElementById('arrivalTime').value = '';
+        document.getElementById('departureTime').value = '';
+        document.getElementById('outPallets').value = '';
+        document.getElementById('inPallets').value = '';
     }
-    if (!arriveRaw.trim() && !leaveRaw.trim()) {
-      alert("到廠時間與離廠時間至少填一個");
-      return;
+
+    function deleteRecord(id) {
+        if(confirm('確定刪除此紀錄？')) {
+            records = records.filter(r => r.id !== id);
+            save();
+        }
     }
 
-    const arrive = normalizeTime(arriveRaw, "到廠時間");
-    if (arrive === null) return;
-    const leave  = normalizeTime(leaveRaw, "離廠時間");
-    if (leave === null) return;
-
-    if (arrive) arriveTimeEl.value = arrive;
-    if (leave)  leaveTimeEl.value  = leave;
-
-    records.push({ date, type, arrive, leave });
-    sortRecords();
-    renderTable();
-    generateText();
-    saveToStorage();  // 自動存檔
-
-    // 成功後保留日期欄位內容，清空車種與時間
-    vehicleTypeInput.value = "";
-    arriveTimeEl.value = "";
-    leaveTimeEl.value  = "";
-  };
-
-  window.deleteRecord = (i) => {
-    records.splice(i, 1);
-    sortRecords();
-    renderTable();
-    generateText();
-    saveToStorage();
-  };
-
-  document.getElementById("copyBtn").onclick = async () => {
-    const text = outputText.value;
-    if (!text || text === "尚無紀錄") {
-      alert("目前沒有可複製的內容");
-      return;
+    function clearAllData() {
+        if(confirm('確定清空所有資料？')) {
+            records = [];
+            save();
+        }
     }
-    await navigator.clipboard.writeText(text);
-    messageEl.textContent = "已複製！";
-    setTimeout(() => (messageEl.textContent = ""), 2000);
-  };
 
-  document.getElementById("generateTextBtn").onclick = () => {
-    sortRecords();
-    renderTable();
-    generateText();
-    messageEl.textContent = "已重新整理";
-    setTimeout(() => (messageEl.textContent = ""), 2000);
-  };
-
-  document.getElementById("clearBtn").onclick = () => {
-    if (confirm("確定要清除全部紀錄嗎？（會一併清除自動儲存）")) {
-      records.length = 0;
-      renderTable();
-      generateText();
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-      } catch (e) {}
+    function save() {
+        localStorage.setItem('vehicleFinalRecords', JSON.stringify(records));
+        render();
     }
-  };
 
-  // 初始載入自動存檔資料
-  loadFromStorage();
-  if (records.length === 0) {
-    renderTable();
-    generateText();
-  }
+    function render() {
+        const listDiv = document.getElementById('recordList');
+        const summaryArea = document.getElementById('summaryText');
+        
+        if (records.length === 0) {
+            listDiv.innerHTML = '<p style="text-align:center; color:#999; font-size:14px; margin-top:20px;">尚無紀錄</p>';
+            summaryArea.value = '';
+            return;
+        }
+
+        listDiv.innerHTML = records.map((r, i) => `
+            <div class="record-card">
+                <div class="record-header">
+                    <span>#${i+1} | 日期：${r.date}</span>
+                    <a href="#" class="delete-link" onclick="deleteRecord(${r.id})">刪除</a>
+                </div>
+                <div class="record-body">
+                    <b>${r.type}</b><br>
+                    時間：${r.arrival} ~ ${r.departure}<br>
+                    <span class="pallet-info">棧板：出 ${r.outPallets} / 回 ${r.inPallets}</span>
+                </div>
+            </div>
+        `).join('');
+
+        let text = `【車輛進出與棧板回報】\n`;
+        records.forEach((r, i) => {
+            text += `${i+1}. [${r.date}] ${r.type} | 時間:${r.arrival}-${r.departure} | 棧板:出${r.outPallets}/回${r.inPallets}\n`;
+        });
+        summaryArea.value = text;
+    }
+
+    async function copyText() {
+        const text = document.getElementById('summaryText').value;
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            alert('內容已複製！');
+        } catch (err) {
+            document.getElementById('summaryText').select();
+            document.execCommand('copy');
+            alert('內容已複製！');
+        }
+    }
+
+    // 初始渲染
+    render();
 </script>
 
 </body>
