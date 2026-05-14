@@ -24,7 +24,6 @@
             justify-content: center;
         }
 
-        /* 主容器 */
         .container {
             background: white;
             width: 100%;
@@ -144,15 +143,16 @@
         .btn-reset { background-color: var(--secondary-gray); color: white; }
 
         .helper-text { font-size: 11px; color: #999; text-align: center; margin-top: 10px; }
+        .time-hint { font-size: 11px; color: #007bff; margin-top: 2px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>車輛棧板紀錄系統</h2>
+    <h2>車輛紀錄回報系統</h2>
 
     <div class="input-group">
-        <label>日期（已預設今日）</label>
+        <label>日期（自動預設今日）</label>
         <input type="date" id="recordDate">
     </div>
 
@@ -168,21 +168,24 @@
             <span class="tag">3PL爆量5</span>
             <span class="tag">ES幹線車</span>
             <span class="tag">ES爆量1</span>
+            <span class="tag">ES爆量2</span>
         </div>
     </div>
 
     <div class="grid-row">
         <div>
             <label>到廠時間</label>
-            <input type="text" id="arrivalTime" inputmode="numeric" placeholder="如 0830">
+            <input type="text" id="arrivalTime" inputmode="numeric" placeholder="請輸入4位數字 (如 0830)">
+            <div class="time-hint">※系統會自動轉為 08:30</div>
         </div>
         <div>
             <label>離廠時間</label>
-            <input type="text" id="departureTime" inputmode="numeric" placeholder="如 1200">
+            <input type="text" id="departureTime" inputmode="numeric" placeholder="請輸入4位數字 (如 1200)">
+            <div class="time-hint">※若尚未離廠可先不填</div>
         </div>
     </div>
 
-    <div class="pallet-section grid-row">
+    <div class="pallet-section grid-row" style="margin-top: 10px;">
         <div>
             <label>出庫棧板數</label>
             <input type="number" id="outPallets" inputmode="numeric" placeholder="0">
@@ -198,7 +201,7 @@
     <div id="recordList"></div>
 
     <div style="margin-top:20px;">
-        <label>整理內容 (複製用)：</label>
+        <label>自動整理內容 (包含日期與棧板)：</label>
         <textarea id="summaryText" readonly></textarea>
     </div>
 
@@ -220,8 +223,8 @@
     }
     setTodayDate();
 
-    // 2. 資料處理
-    let records = JSON.parse(localStorage.getItem('vehicleFinalRecords')) || [];
+    // 2. 資料處理 (使用 v4 儲存 key)
+    let records = JSON.parse(localStorage.getItem('vehicleFinalRecords_v4')) || [];
 
     document.getElementById('quickSelect').addEventListener('click', (e) => {
         if (e.target.classList.contains('tag')) {
@@ -229,6 +232,7 @@
         }
     });
 
+    // 自動格式化時間：輸入 0830 轉 08:30
     function formatTime(val) {
         val = val.replace(/:/g, '').trim();
         if (val.length === 4 && !isNaN(val)) return val.substring(0, 2) + ':' + val.substring(2, 4);
@@ -238,23 +242,32 @@
     function addRecord() {
         const type = document.getElementById('vehicleType').value;
         const date = document.getElementById('recordDate').value;
-        const arr = formatTime(document.getElementById('arrivalTime').value);
-        const dep = formatTime(document.getElementById('departureTime').value);
+        const arrInput = document.getElementById('arrivalTime').value;
+        const depInput = document.getElementById('departureTime').value;
         const outP = document.getElementById('outPallets').value || 0;
         const inP = document.getElementById('inPallets').value || 0;
 
-        if (!type || !arr) {
+        if (!type || !arrInput) {
             alert('請填寫車型與到廠時間');
             return;
         }
 
+        const arrFormatted = formatTime(arrInput);
+        const depFormatted = depInput ? formatTime(depInput) : '--';
+
         records.push({
             id: Date.now(),
-            date, type, arrival: arr, departure: dep || '--',
-            outPallets: outP, inPallets: inP
+            date, 
+            type, 
+            arrival: arrFormatted, 
+            departure: depFormatted,
+            outPallets: outP, 
+            inPallets: inP
         });
 
         save();
+        
+        // 清空部分欄位
         document.getElementById('arrivalTime').value = '';
         document.getElementById('departureTime').value = '';
         document.getElementById('outPallets').value = '';
@@ -269,14 +282,14 @@
     }
 
     function clearAllData() {
-        if(confirm('確定清空所有資料？')) {
+        if(confirm('警告：確定清空所有本機儲存的紀錄？')) {
             records = [];
             save();
         }
     }
 
     function save() {
-        localStorage.setItem('vehicleFinalRecords', JSON.stringify(records));
+        localStorage.setItem('vehicleFinalRecords_v4', JSON.stringify(records));
         render();
     }
 
@@ -316,7 +329,7 @@
         if (!text) return;
         try {
             await navigator.clipboard.writeText(text);
-            alert('內容已複製！');
+            alert('內容已成功複製！');
         } catch (err) {
             document.getElementById('summaryText').select();
             document.execCommand('copy');
@@ -324,7 +337,6 @@
         }
     }
 
-    // 初始渲染
     render();
 </script>
 
