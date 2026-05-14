@@ -3,148 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>車輛棧板紀錄工具</title>
+    <title>車輛紀錄系統</title>
     <style>
         :root {
             --primary-blue: #007bff;
             --secondary-gray: #6c757d;
             --success-green: #28a745;
-            --danger-red: #dc3545;
-            --bg-light: #f4f7f6;
+            --danger-red: #d90429;
+            --bg-light: #f8f9fa;
+            --warning-red-bg: #fff0f0;
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; font-family: "Microsoft JhengHei", sans-serif; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            background-color: var(--bg-light);
-            margin: 0;
-            padding: 10px;
-            display: flex;
-            justify-content: center;
-        }
+        body { background-color: #e9ecef; margin: 0; padding: 10px; display: flex; justify-content: center; }
 
         .container {
             background: white;
             width: 100%;
             max-width: 600px;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        h2 { text-align: center; font-size: 1.3rem; margin: 10px 0 20px; color: #333; }
+        h2 { text-align: center; color: #333; margin-bottom: 20px; font-size: 1.4rem; }
 
-        .input-group { margin-bottom: 12px; }
+        .section { margin-bottom: 15px; }
 
-        label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #444; }
+        label { display: block; font-size: 14px; margin-bottom: 5px; color: #555; font-weight: bold; }
 
         input {
             width: 100%;
             padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
             font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #fafafa;
+            background: #fff;
         }
 
-        input::placeholder { font-size: 12px; color: #aaa; }
-
-        .quick-select {
-            margin: 8px 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
+        /* 快速標籤 */
+        .quick-select { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
         .tag {
-            background: #eef6ff;
-            color: #007bff;
-            padding: 8px 12px;
-            border-radius: 15px;
-            font-size: 13px;
-            border: 1px solid #cce5ff;
+            background: #e1f0ff;
+            color: #0056b3;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
             cursor: pointer;
+            border: 1px solid #b3d7ff;
         }
-
         .tag:active { background: #007bff; color: white; }
 
-        .grid-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 5px;
-        }
+        /* 橫向格線 */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-        .pallet-section {
-            background: #fff9e6;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ffeeba;
-        }
+        /* 棧板區域 */
+        .pallet-box { background: #fff9e6; padding: 10px; border-radius: 4px; border: 1px solid #ffeeba; }
 
         .btn {
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
             padding: 12px;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
         }
 
-        .btn-add { background-color: var(--primary-blue); color: white; width: 100%; margin-top: 10px; }
+        .btn-add { background-color: var(--primary-blue); width: 100%; margin-top: 10px; }
 
+        /* 紀錄顯示卡片 */
         .record-card {
             background: #fff;
-            border: 1px solid #eee;
+            border: 1px solid #dee2e6;
             border-left: 5px solid var(--primary-blue);
-            border-radius: 8px;
+            border-radius: 4px;
             padding: 12px;
-            margin-top: 10px;
+            margin-top: 12px;
         }
 
-        .record-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #777;
-            border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 5px;
-            margin-bottom: 8px;
+        /* 有回庫時的卡片樣式 */
+        .card-alert {
+            background: var(--warning-red-bg);
+            border: 2px solid var(--danger-red);
+            border-left: 10px solid var(--danger-red);
         }
 
-        .record-body { font-size: 15px; line-height: 1.5; color: #333; }
-        .pallet-info { color: #d63384; font-weight: bold; }
+        .card-head { display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-bottom: 8px; }
+        .card-body { font-size: 15px; color: #333; line-height: 1.5; }
+        .del-btn { color: var(--danger-red); text-decoration: none; cursor: pointer; }
 
-        .delete-link { color: var(--danger-red); text-decoration: none; font-size: 13px; }
+        /* 回庫字體加重 */
+        .inbound-text { 
+            font-size: 1.1rem;
+            color: var(--danger-red); 
+            font-weight: 900;
+        }
 
         textarea {
             width: 100%;
-            height: 180px; /* 增加高度看更清楚排版 */
+            height: 160px;
             margin-top: 10px;
             padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            font-family: monospace;
+            border: 1px solid #ccc;
+            border-radius: 4px;
             font-size: 14px;
-            background: #f9f9f9;
+            background: #fdfdfd;
+            resize: none;
         }
 
-        .footer-btns {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
-        }
+        .footer { display: flex; justify-content: space-between; margin-top: 15px; gap: 10px; }
+        .btn-copy { flex: 2; background-color: var(--success-green); }
+        .btn-clear { flex: 1; background-color: var(--danger-red); font-size: 14px; }
+        .btn-reset { flex: 1; background-color: var(--secondary-gray); font-size: 14px; }
 
-        .btn-copy { grid-column: span 2; background-color: var(--success-green); color: white; font-size: 18px; margin-top: 5px; }
-        .btn-clear { background-color: var(--danger-red); color: white; }
-        .btn-reset { background-color: var(--secondary-gray); color: white; }
-
-        .time-hint { font-size: 10px; color: #999; margin-top: 2px; padding-left: 2px; }
+        .hint { font-size: 10px; color: #999; margin-top: 2px; }
     </style>
 </head>
 <body>
@@ -152,13 +126,14 @@
 <div class="container">
     <h2>車輛紀錄回報系統</h2>
 
-    <div class="input-group">
+    <div class="section">
         <label>日期</label>
         <input type="date" id="recordDate">
     </div>
 
-    <div class="input-group">
-        <label>車型快選</label>
+    <div class="section">
+        <label>車型</label>
+        <input type="text" id="vehicleType" placeholder="選標籤或手動輸入">
         <div class="quick-select" id="quickSelect">
             <span class="tag">3PL幹線(南)</span>
             <span class="tag">3PL爆量1</span>
@@ -170,23 +145,22 @@
             <span class="tag">ES爆量1</span>
             <span class="tag">ES爆量2</span>
         </div>
-        <input type="text" id="vehicleType" placeholder="標籤快選或手動輸入" style="margin-top:8px;">
     </div>
 
-    <div class="grid-row">
+    <div class="section grid-2">
         <div>
             <label>到廠時間</label>
             <input type="text" id="arrivalTime" inputmode="numeric" placeholder="如 0830">
-            <div class="time-hint">※會自動轉 08:30</div>
+            <div class="hint">※自動轉 08:30</div>
         </div>
         <div>
             <label>離廠時間</label>
             <input type="text" id="departureTime" inputmode="numeric" placeholder="如 1200">
-            <div class="time-hint">※未離廠可不填</div>
+            <div class="hint">※未離可先不填</div>
         </div>
     </div>
 
-    <div class="pallet-section grid-row" style="margin-top: 10px;">
+    <div class="section pallet-box grid-2">
         <div>
             <label>出庫棧板</label>
             <input type="number" id="outPallets" inputmode="numeric" placeholder="0">
@@ -197,65 +171,65 @@
         </div>
     </div>
 
-    <button class="btn btn-add" onclick="addRecord()">＋ 新增此筆紀錄</button>
+    <button class="btn btn-add" onclick="addRecord()">＋ 新增紀錄</button>
 
     <div id="recordList"></div>
 
-    <div style="margin-top:20px;">
-        <label>LINE 複製格式預覽：</label>
+    <div class="section" style="margin-top: 20px;">
+        <label>LINE 複製內容預覽</label>
         <textarea id="summaryText" readonly></textarea>
     </div>
 
-    <div class="footer-btns">
+    <div class="footer">
         <button class="btn btn-reset" onclick="location.reload()">重新整理</button>
-        <button class="btn btn-clear" onclick="clearAllData()">清空紀錄</button>
-        <button class="btn btn-copy" onclick="copyText()">一鍵複製全部內容</button>
+        <button class="btn btn-clear" onclick="clearData()">清空紀錄</button>
+        <button class="btn btn-copy" onclick="copyText()">一鍵複製內容</button>
     </div>
 </div>
 
 <script>
-    function setTodayDate() {
+    // 初始化當天日期
+    function initDate() {
         const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        document.getElementById('recordDate').value = `${year}-${month}-${day}`;
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        document.getElementById('recordDate').value = `${y}-${m}-${d}`;
     }
-    setTodayDate();
+    initDate();
 
-    let records = JSON.parse(localStorage.getItem('vehicleFinalRecords_v6')) || [];
+    let records = JSON.parse(localStorage.getItem('vRecords_v10')) || [];
 
-    document.getElementById('quickSelect').addEventListener('click', (e) => {
-        if (e.target.classList.contains('tag')) {
+    document.getElementById('quickSelect').onclick = (e) => {
+        if (e.target.className === 'tag') {
             document.getElementById('vehicleType').value = e.target.innerText;
         }
-    });
+    };
 
-    function formatTime(val) {
-        val = val.replace(/:/g, '').trim();
-        if (val.length === 4 && !isNaN(val)) return val.substring(0, 2) + ':' + val.substring(2, 4);
-        return val;
+    function fmtTime(v) {
+        v = v.replace(/:/g, '').trim();
+        if (v.length === 4 && !isNaN(v)) {
+            return v.substring(0, 2) + ':' + v.substring(2, 4);
+        }
+        return v;
     }
 
     function addRecord() {
         const type = document.getElementById('vehicleType').value;
         const date = document.getElementById('recordDate').value;
-        const arrInput = document.getElementById('arrivalTime').value;
-        const depInput = document.getElementById('departureTime').value;
+        const arr = document.getElementById('arrivalTime').value;
+        const dep = document.getElementById('departureTime').value;
         const outP = document.getElementById('outPallets').value || 0;
         const inP = document.getElementById('inPallets').value || 0;
 
-        if (!type || !arrInput) {
-            alert('請填寫車型與到廠時間');
-            return;
-        }
+        if (!type || !arr) return alert('請輸入車型與時間');
 
         records.push({
             id: Date.now(),
             date, type, 
-            arrival: formatTime(arrInput), 
-            departure: depInput ? formatTime(depInput) : '--',
-            outPallets: outP, inPallets: inP
+            arrival: fmtTime(arr), 
+            departure: dep ? fmtTime(dep) : '--',
+            outP, inP
         });
 
         save();
@@ -265,14 +239,14 @@
         document.getElementById('inPallets').value = '';
     }
 
-    function deleteRecord(id) {
+    function deleteRec(id) {
         if(confirm('確定刪除？')) {
             records = records.filter(r => r.id !== id);
             save();
         }
     }
 
-    function clearAllData() {
+    function clearData() {
         if(confirm('確定清空所有紀錄？')) {
             records = [];
             save();
@@ -280,54 +254,60 @@
     }
 
     function save() {
-        localStorage.setItem('vehicleFinalRecords_v6', JSON.stringify(records));
+        localStorage.setItem('vRecords_v10', JSON.stringify(records));
         render();
     }
 
     function render() {
-        const listDiv = document.getElementById('recordList');
-        const summaryArea = document.getElementById('summaryText');
+        const list = document.getElementById('recordList');
+        const sum = document.getElementById('summaryText');
         
         if (records.length === 0) {
-            listDiv.innerHTML = '<p style="text-align:center; color:#999; font-size:14px; margin-top:20px;">尚無紀錄</p>';
-            summaryArea.value = '';
+            list.innerHTML = '';
+            sum.value = '';
             return;
         }
 
-        // 頁面卡片顯示
-        listDiv.innerHTML = records.map((r, i) => `
-            <div class="record-card">
-                <div class="record-header">
-                    <span>#${i+1} | ${r.date}</span>
-                    <a href="#" class="delete-link" onclick="deleteRecord(${r.id})">刪除</a>
-                </div>
-                <div class="record-body">
+        // 網頁端介面
+        list.innerHTML = records.map((r, i) => {
+            const hasIn = parseInt(r.inP) > 0;
+            const alertClass = hasIn ? 'card-alert' : '';
+            const inStyle = hasIn ? 'inbound-text' : '';
+            return `
+            <div class="record-card ${alertClass}">
+                <div class="card-head"><span>#${i+1} | ${r.date}</span><span class="del-btn" onclick="deleteRec(${r.id})">刪除</span></div>
+                <div class="card-body">
                     <b>${r.type}</b><br>
                     時間：${r.arrival} ~ ${r.departure}<br>
-                    <span class="pallet-info">棧板：出 ${r.outPallets} / 回 ${r.inPallets}</span>
+                    棧板：出 ${r.outP} / <span class="${inStyle}">${hasIn ? '🚨 回 ' + r.inP : '回 ' + r.inP}</span>
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
 
-        // 產出 LINE 優化版格式
-        let text = `🚛【車輛進出回報】\n`;
+        // LINE 格式內容
+        let txt = `🚛【車輛進出回報】\n`;
         records.forEach((r, i) => {
-            const shortDate = r.date.substring(5).replace('-', '/'); // 2026-05-14 -> 05/14
-            text += `\n#${i+1} ${r.type} (${shortDate})\n`;
-            text += `⏲ 時間：${r.arrival} - ${r.departure}\n`;
-            text += `📦 棧板：出 ${r.outPallets} / 回 ${r.inPallets}\n`;
-            text += `──────────`;
+            const sd = r.date.substring(5).replace('-', '/');
+            const hasIn = parseInt(r.inP) > 0;
+            txt += `\n#${i+1} ${r.type} (${sd})\n⏲ 時間：${r.arrival} - ${r.departure}\n`;
+            if (hasIn) {
+                // 修改處：加強回庫提示文字
+                txt += `📦 棧板：出 ${r.outP} / 🔴回 ${r.inP} (請留意)\n`;
+            } else {
+                txt += `📦 棧板：出 ${r.outP} / 回 ${r.inP}\n`;
+            }
+            txt += `──────────`;
         });
-        summaryArea.value = text;
+        sum.value = txt;
     }
 
     async function copyText() {
-        const text = document.getElementById('summaryText').value;
-        if (!text) return;
+        const t = document.getElementById('summaryText').value;
+        if (!t) return;
         try {
-            await navigator.clipboard.writeText(text);
-            alert('內容已成功複製！');
-        } catch (err) {
+            await navigator.clipboard.writeText(t);
+            alert('內容已複製！');
+        } catch (e) {
             document.getElementById('summaryText').select();
             document.execCommand('copy');
             alert('內容已複製！');
