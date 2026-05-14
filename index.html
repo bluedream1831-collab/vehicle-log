@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>車輛紀錄系統</title>
+    <title>車輛紀錄回報系統</title>
     <style>
         :root {
             --primary-blue: #007bff;
@@ -55,7 +55,7 @@
         }
         .tag:active { background: #007bff; color: white; }
 
-        /* 橫向格線 */
+        /* 橫向格線排列 */
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
         /* 棧板區域 */
@@ -83,7 +83,7 @@
             margin-top: 12px;
         }
 
-        /* 有回庫時的卡片樣式 */
+        /* 有回庫時的卡片高亮樣式 */
         .card-alert {
             background: var(--warning-red-bg);
             border: 2px solid var(--danger-red);
@@ -94,7 +94,7 @@
         .card-body { font-size: 15px; color: #333; line-height: 1.5; }
         .del-btn { color: var(--danger-red); text-decoration: none; cursor: pointer; }
 
-        /* 回庫字體加重 */
+        /* 網頁介面上回庫字體加重 */
         .inbound-text { 
             font-size: 1.1rem;
             color: var(--danger-red); 
@@ -188,7 +188,7 @@
 </div>
 
 <script>
-    // 初始化當天日期
+    // 初始化日期預設為今天
     function initDate() {
         const now = new Date();
         const y = now.getFullYear();
@@ -198,7 +198,7 @@
     }
     initDate();
 
-    let records = JSON.parse(localStorage.getItem('vRecords_v10')) || [];
+    let records = JSON.parse(localStorage.getItem('vRecords_v11')) || [];
 
     document.getElementById('quickSelect').onclick = (e) => {
         if (e.target.className === 'tag') {
@@ -254,7 +254,7 @@
     }
 
     function save() {
-        localStorage.setItem('vRecords_v10', JSON.stringify(records));
+        localStorage.setItem('vRecords_v11', JSON.stringify(records));
         render();
     }
 
@@ -268,7 +268,7 @@
             return;
         }
 
-        // 網頁端介面
+        // 網頁端 UI
         list.innerHTML = records.map((r, i) => {
             const hasIn = parseInt(r.inP) > 0;
             const alertClass = hasIn ? 'card-alert' : '';
@@ -279,7 +279,7 @@
                 <div class="card-body">
                     <b>${r.type}</b><br>
                     時間：${r.arrival} ~ ${r.departure}<br>
-                    棧板：出 ${r.outP} / <span class="${inStyle}">${hasIn ? '🚨 回 ' + r.inP : '回 ' + r.inP}</span>
+                    棧板：出 ${r.outP} / <span class="${inStyle}">${hasIn ? '⚠️ 回 ' + r.inP : '回 ' + r.inP}</span>
                 </div>
             </div>`;
         }).join('');
@@ -291,8 +291,8 @@
             const hasIn = parseInt(r.inP) > 0;
             txt += `\n#${i+1} ${r.type} (${sd})\n⏲ 時間：${r.arrival} - ${r.departure}\n`;
             if (hasIn) {
-                // 修改處：加強回庫提示文字
-                txt += `📦 棧板：出 ${r.outP} / 🔴回 ${r.inP} (請留意)\n`;
+                // 替換處：替換 "(請留意)" 為圖示 ⚠️
+                txt += `📦 棧板：出 ${r.outP} / 🔴回 ${r.inP} ⚠️\n`;
             } else {
                 txt += `📦 棧板：出 ${r.outP} / 回 ${r.inP}\n`;
             }
