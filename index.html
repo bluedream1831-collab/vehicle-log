@@ -83,7 +83,7 @@
             margin-top: 12px;
         }
 
-        /* 有回庫時的卡片高亮樣式 */
+        /* 有回庫時的高亮樣式 */
         .card-alert {
             background: var(--warning-red-bg);
             border: 2px solid var(--danger-red);
@@ -94,7 +94,7 @@
         .card-body { font-size: 15px; color: #333; line-height: 1.5; }
         .del-btn { color: var(--danger-red); text-decoration: none; cursor: pointer; }
 
-        /* 網頁介面上回庫字體加重 */
+        /* 介面回庫字體加重 */
         .inbound-text { 
             font-size: 1.1rem;
             color: var(--danger-red); 
@@ -183,12 +183,12 @@
     <div class="footer">
         <button class="btn btn-reset" onclick="location.reload()">重新整理</button>
         <button class="btn btn-clear" onclick="clearData()">清空紀錄</button>
-        <button class="btn btn-copy" onclick="copyText()">一鍵複製內容</button>
+        <button class="btn btn-copy" onclick="copyText()">一鍵複製全部內容</button>
     </div>
 </div>
 
 <script>
-    // 初始化日期預設為今天
+    // 預設日期為今天
     function initDate() {
         const now = new Date();
         const y = now.getFullYear();
@@ -198,7 +198,7 @@
     }
     initDate();
 
-    let records = JSON.parse(localStorage.getItem('vRecords_v11')) || [];
+    let records = JSON.parse(localStorage.getItem('vRecords_v12')) || [];
 
     document.getElementById('quickSelect').onclick = (e) => {
         if (e.target.className === 'tag') {
@@ -240,7 +240,7 @@
     }
 
     function deleteRec(id) {
-        if(confirm('確定刪除？')) {
+        if(confirm('確定刪除此筆紀錄？')) {
             records = records.filter(r => r.id !== id);
             save();
         }
@@ -254,7 +254,7 @@
     }
 
     function save() {
-        localStorage.setItem('vRecords_v11', JSON.stringify(records));
+        localStorage.setItem('vRecords_v12', JSON.stringify(records));
         render();
     }
 
@@ -268,7 +268,7 @@
             return;
         }
 
-        // 網頁端 UI
+        // 介面渲染邏輯
         list.innerHTML = records.map((r, i) => {
             const hasIn = parseInt(r.inP) > 0;
             const alertClass = hasIn ? 'card-alert' : '';
@@ -284,15 +284,15 @@
             </div>`;
         }).join('');
 
-        // LINE 格式內容
+        // LINE 格式邏輯調整
         let txt = `🚛【車輛進出回報】\n`;
         records.forEach((r, i) => {
             const sd = r.date.substring(5).replace('-', '/');
             const hasIn = parseInt(r.inP) > 0;
             txt += `\n#${i+1} ${r.type} (${sd})\n⏲ 時間：${r.arrival} - ${r.departure}\n`;
             if (hasIn) {
-                // 替換處：替換 "(請留意)" 為圖示 ⚠️
-                txt += `📦 棧板：出 ${r.outP} / 🔴回 ${r.inP} ⚠️\n`;
+                // 修改處：更改回庫標示格式為 ⚠️回 X
+                txt += `📦 棧板：出 ${r.outP} / ⚠️回 ${r.inP}\n`;
             } else {
                 txt += `📦 棧板：出 ${r.outP} / 回 ${r.inP}\n`;
             }
